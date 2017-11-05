@@ -26,7 +26,7 @@ Use the `tag_count.py` file to fetch the all tag type with total number of each 
 * `'way': 38132`
 
 ## Auditing the k Tags
-After reading the OpenStreetMap Wiki(https://wiki.openstreetmap.org/wiki/Main_Page), I learnt that nodes, ways and relations.
+After reading the [OpenStreetMap Wiki](https://wiki.openstreetmap.org/wiki/Main_Page), I learnt that nodes, ways and relations.
 Because the `"k"` value of each tag contain different patterns, I used `auditing_k_tag_type.py` including three regular expressions to check for certain patterns in the tags.
 Four different types of k tags as below.
 
