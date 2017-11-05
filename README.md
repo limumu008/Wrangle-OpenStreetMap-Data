@@ -1,4 +1,5 @@
 # Project-4-Wrangle-OpenStreetMap-Data
+## Nan Li
 
 **Map Area**
 Houston, TX, United States
@@ -8,72 +9,90 @@ Houston, TX, United States
 
 Since I'm living and studing in houston right now, I'm more interested to see what's going on here. 
 
-# 1. Data Audit
+# 1. Sampling Data
+Due to the size of the XML file, I sampled the data by using `map_sample.py`. In order to keep more data, set k = 10.
+And named sample file is `sample_houston.osm`.
+
+# 2. Data Audit
 ## Unique Tags
 Use the `tag_count.py` file to fetch the all tag type with total number of each tag.
 
-
-* `'bounds': 1`
-* ` 'member': 2298,`
-* ` 'nd': 608543,`
-* `'node': 525565,`
+* `'member': 1487,`
+* `'nd': 309740,`
+* `'node': 250482,`
 * `'osm': 1,`
-* `'relation': 526,`
-* `'tag': 91356,`
-* `'way': 77866`
+* `'relation': 202,`
+* `'tag': 180462,`
+* `'way': 38132`
 
-### Patterns in the Tags
-The `"k"` value of each tag contain different patterns. Using `tags.py`, I created  3 regular expressions to check for certain patterns in the tags.
-I have counted each of four tag categories.
+## Auditing the k Tags
+After reading the OpenStreetMap Wiki(https://wiki.openstreetmap.org/wiki/Main_Page), I learnt that nodes, ways and relations.
+Because the `"k"` value of each tag contain different patterns, I used `auditing_k_tag_type.py` including three regular expressions to check for certain patterns in the tags.
+Four different types of k tags as below.
 
-*  `"lower" : 90228`, for tags that contain only lowercase letters and are valid,
-*  `"lower_colon" : 1104`, for otherwise valid tags with a colon in their names,
-*  `"problemchars" : 16`, for tags with problematic characters, and
-*  `"other" : 0`, for other tags that do not fall into the other three categories.
+*  `"problemchars" : 0`, for tags with problematic characters, and
+*  `"lower" : 86870`, for tags that contain only lowercase letters and are valid,
+*  `"lower_colon" : 89297`, for otherwise valid tags with a colon in their names,
+*  `"other" : 4295`, for other tags that do not fall into the other three categories.
 
-# 2. Problems Encountered in the Map
-###Street address inconsistencies
-The main problem we encountered in the dataset is the street name inconsistencies. Below is the old name corrected with the better name. Using `audit.py`, we updated the names.
- 
+## Auditing the users
+Used `auditing_users.py` to audit the users and the number of users.
+`The number of different users is 1254.`
 
-* **Abbreviations** 
-    * `Rd -> Road`
-* **LowerCase**
-    * `gandhi -> Gandhi`
-* **Misspelling**
-    * `socity -> Society`
-* **Hindi names**
-    * `rasta -> Road`
-* **UpperCase Words**
-    * `sbk -> SBK`
+# 3. Problems Encountered in the Map
+After dealing with the sample file of houston area, I noticed three main problems with the data.
+* `Inconsistent street names("Ave", "Frwy")`
+* `Inconsistent postal codes("TX 77086", "77024-8022")`
+* `Many 'k' tags had only been used once and many similar tags were referenced by different names.`
 
-### City name inconsistencies
-Using `audit.py`, we update the names
+## Inconsistent Street Names
+Auditing the street name by using `auditing_street_name.py`, some inconsistent names are showing. 
+* `'Ave': {'E Parkwood Ave', 'Washington Ave'}`
+* `'Blvd': {'John Freeman Blvd', 'Montrose Blvd'}`
+* `'Dr': {'Business Center Dr', 'Portway Dr'}`
 
-* **LowerCase**
-	* `ahmedabad -> Ahmedabad`
-* **Misspelling**
-	* `Ahmadabad -> Ahmedabad`
+## Updating Street Names
+Updating the street name, I used `updating_street_name.py`.
+* `('Washington Ave', '=>', 'Washington Avenue')`
+* `('Montrose Blvd', '=>', 'Montrose Boulevard')`
+* `('Business Center Dr', '=>', 'Business Center Drive')`
 
+## Inconsistent Postal Code
+Normalized the postal code to be five degits by using `update_zipcode.py`.
+* `'TX 77086', '=>' ['77086']`
+* `'77077-9998', '=>', '77077'`
 
-#3. Data Overview
-### File sizes:
+# 4. Data Overview
+## Preparing Data for SQL
+Before using SQL to process data, I convert the OSM to CSV by `xml_to_csv.py`. And then based on the schema from the instruction and `csv_to_db.py`, I create a houston.db file.
 
-* `ahmedabad_india.osm: 109.2 MB`
-* `nodes_csv: 43.4 MB`
-* `nodes_tags.csv: 163.4 KB`
-* `ways_csv: 4.6 MB`
-* `ways_nodes.csv: 14.7 MB`
-* `ways_tags.csv: 2.8 MB`
-* `ahmedabad.db: 78.5 MB`
+## File Sizes:
 
-###Number of nodes:
+* `houston.osm: 556 MB`
+* `sample_houston.osm: 56.4 MB`
+* `nodes_csv: 20.2 MB`
+* `nodes_tags.csv: 516 KB`
+* `ways_csv: 2.20 MB`
+* `ways_nodes.csv: 7.31 MB`
+* `ways_tags.csv: 5.74 MB`
+* `houston.db: 41.5 MB`
+
+### Number of documents:
+``` python
+sqlite> SELECT COUNT(*) FROM ways_nodes
+```
+**Output:**
+```
+309740
+```
+
+### Number of nodes:
 ``` python
 sqlite> SELECT COUNT(*) FROM nodes
 ```
 **Output:**
 ```
-525565
+250482
 ```
 
 ### Number of ways:
@@ -82,59 +101,79 @@ sqlite> SELECT COUNT(*) FROM ways
 ```
 **Output:**
 ```
-77866
+38132
 ```
 
-###Number of unique users:
+### Number of unique users:
 ```python
 sqlite> SELECT COUNT(DISTINCT(e.uid))          
 FROM (SELECT uid FROM nodes UNION ALL SELECT uid FROM ways) e;
 ```
 **Output:**
 ```
-226
+1253
+```
+### Number of users contributing only once:
+```python
+sqlite> SELECT COUNT(*) 
+FROM(SELECT e.user, COUNT(*) as num
+FROM (SELECT user FROM nodes UNION ALL SELECT user FROM ways) e
+GROUP BY e.user
+HAVING num=1) u;
+```
+**Output:**
+```
+245
 ```
 
-###Top contributing users:
+### Top 10 contributors:
 ```python
 sqlite> SELECT e.user, COUNT(*) as num
 FROM (SELECT user FROM nodes UNION ALL SELECT user FROM ways) e
 GROUP BY e.user
-ORDER BY num DESC
-LIMIT 10;
+ORDER BY num 
+DESC LIMIT 10;
 ```
 **Output:**
 
 ```
-uday01			177686
-sramesh			136887
-chaitanya110	123328
-shashi2			49514
-vkvora			22216
-shravan91		21508
-shiva05			19671
-bhanu3			12645
-Oberaffe		7042
-PlaneMad		4969
+afdreher		46707
+woodpeck_fixbot		35168
+cammace			19320
+scottyc			18677
+claysmalley		13835
+brianboru		10765
+skquinn			8098
+RoadGeek_MD99		7674
+Memoire			5599
+TexasNHD		4673
 ```
-
-###Number of users contributing only once:
+### Top 10 zipcode:
 ```python
-sqlite> SELECT COUNT(*) 
-FROM
-    (SELECT e.user, COUNT(*) as num
-     FROM (SELECT user FROM nodes UNION ALL SELECT user FROM ways) e
-     GROUP BY e.user
-     HAVING num=1) u;
+sqlite> SELECT tags.value, COUNT(*) as count
+FROM (SELECT * FROM nodes_tags UNION ALL 
+SELECT * FROM ways_tags) tags
+WHERE tags.key = 'postcode'
+GROUP BY tags.value
+ORDER BY count DESC LIMIT 10;
 ```
 **Output:**
 ```
-44
+77096		47
+77449		27
+77401		25
+77339		22
+77494		16
+77076		14
+77002		11
+77586		11
+77007		9
+77006		8
 ```
 
-# 4. Additional Data Exploration
+# 5. Additional Data Exploration
 
-###Common ammenities:
+### Common ammenities:
 ```python
 sqlite> SELECT value, COUNT(*) as num
 FROM nodes_tags
@@ -146,81 +185,48 @@ LIMIT 10;
 ```
 **Output:**
 ```
-place_of_worship	47
-restaurant			31
-bank				21
-school				18
-fuel				14
-library				14
-hospital			13
-cafe				12
-fast_food			11
-cinema				10
+parking			382
+place_of_worship	223
+school			148
+fast_food		92
+restaurant		82
+fountain		72
+fuel			55
+fire_station		30
+pharmacy		28
+bank			22
 ```
 
-###Biggest religion:
+###  Popular cuisines:
 ```python
 sqlite> SELECT nodes_tags.value, COUNT(*) as num
 FROM nodes_tags 
-    JOIN (SELECT DISTINCT(id) FROM nodes_tags WHERE value='place_of_worship') i
-    ON nodes_tags.id=i.id
-WHERE nodes_tags.key='religion'
-GROUP BY nodes_tags.value
-ORDER BY num DESC
-LIMIT 1;
-```
-**Output:**
-```
-Hindu :	31
-```
-###Popular cuisines
-```python
-sqlite> SELECT nodes_tags.value, COUNT(*) as num
-FROM nodes_tags 
-    JOIN (SELECT DISTINCT(id) FROM nodes_tags WHERE value='restaurant') i
-    ON nodes_tags.id=i.id
+JOIN (SELECT DISTINCT(id) FROM nodes_tags WHERE value='restaurant') i
+ON nodes_tags.id=i.id
 WHERE nodes_tags.key='cuisine'
 GROUP BY nodes_tags.value
-ORDER BY num DESC;
+ORDER BY num DESC LIMIT	10;
 ```
 **Output:**
 ```
-regional								4
-vegetarian								3
-pizza									2
-Punjabi,_SouthIndia,_Gujarati Thali		1
-burger									1
-indian									1
-international							1
-italian									1
-sandwich								1
+mexican			10
+burger			5
+italian			3
+asian			2
+pizza			2
+american		1
+barbeque		1
+cajun			1
+chinese			1
+latin_american		1
 ```
+From this partial result, I can guess there are more mexican who lived in houston since mexico is close to houston.
 
-# 5. Conclusion
-The OpenStreetMap data of Ahmedabad is of fairly reasonable quality but the typo errors caused by the human inputs are significant. We have cleaned a significant amount of the data which is required for this project. But, there are lots of improvement needed in the dataset. The dataset contains very less amount of additional information such as amenities, tourist attractions, popular places and other useful interest. The dataset contains very old information which is now incomparable to that of Google Maps or Bing Maps.
+# 6. Conclusion
+Since the size of the houston.OSM is big, I have played with sample_houston.OSM. There are some inconsistent informations in this data. Doing the normalization is a good way, but it's not the whole idea. If we can standard the input, that's a better way. From the popular cusines, we can know no enough infomation arranged into some tags.
 
-So, I think there are several opportunities for cleaning and validation of the data in the future. 
 
-### Additional Suggestion and Ideas
 
-#### Control typo errors
-* We can build parser which parse every word input by the users.
-* We can make some rules or patterns to input data which users follow everytime to input their data. This will also restrict users input in their native language.
-* We can develope script or bot to clean the data regularly or certain period.
-
-#### More information
-* The tourists or even the city people search map to see the basic amenities provided in the city or what are the popular places and attractions in the city or near outside the city. So, the users must be motivated to also provide these informations in the map.
-* If we can provide these informations then there are more chances to increase views on the map because many people directly enter the famous name on the map.
-
-# Files
-* `Quiz/` : scripts completed in lesson Case Study OpenStreetMap
-* `README.md` : this file
-* `ahmedabad_sample.osm`: sample data of the OSM file
-* `audit.py` : audit street, city and update their names
-* `data.py` : build CSV files from OSM and also parse, clean and shape data
-* `database.py` : create database of the CSV files
-* `mapparser.py` : find unique tags in the data
-* `query.py` : different queries about the database using SQL
-* `report.pdf` : pdf of this document
-* `sample.py` : extract sample data from the OSM file
-* `tags.py` : count multiple patterns in the tags
+# References
+https://github.com/pratyush19/Udacity-Data-Analyst-Nanodegree/tree/master/P3-OpenStreetMap-Wrangling-with-SQL
+https://github.com/mablatnik/Wrangle-OpenStreetMap-Data/blob/master/OpenStreetMap.ipynb
