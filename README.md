@@ -223,8 +223,17 @@ latin_american		1
 From this partial result, I can guess there are more mexican who lived in houston since mexico is close to houston.
 
 # 6. Conclusion
-Since the size of the houston.OSM is big, I have played with sample_houston.OSM. There are some inconsistent informations in this data. Doing the normalization is a good way, but it's not the whole idea. If we can standard the input, that's a better way. From the popular cusines, we can know no enough infomation arranged into some tags.
+Since the size of the houston.OSM is big, I have played with sample_houston.OSM. There are some inconsistent informations in this data. Doing the normalization is a good way, but it's not the whole idea. If we can standard the input, that's a better way. From the popular cusines, we can know no enough infomation arranged into some tags. Comparing with Google Maps, the information of the dataset were very old.
 
+# Additional Suggestion and Ideas
+
+## How to control typo errors
+* `Making some rules to the input data which all the users can follow that. Just like when you order something on Amazon and type your address, it will give you a suggested address.`
+* `Developping some script to clean the data in a certain time.`
+
+## Benefits
+* `Avoiding the invalid information on the dataset and improving the fetching result speed and accurancy`
+* `Standarding the input data as Google Maps, it's more convenient to do the cross-referencing.`
 
 
 # References
