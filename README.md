@@ -235,6 +235,10 @@ Since the size of the houston.OSM is big, I have played with sample_houston.OSM.
 * `Avoiding the invalid information on the dataset and improving the fetching result speed and accurancy`
 * `Standarding the input data as Google Maps, it's more convenient to do the cross-referencing.`
 
+## Anticipated Problems
+* `Supposed the user still typed the information by unfollowed the suggested format is a big problem.`
+* `For the scrip of cleaning data, it will not only modify the data, but also delete the data sometimes. How should we deal with it?`
+* `Even if everything is setted up exactly, we will still face the wrong information problem. Like someone typed Houston Avenue as Washington Avenue.`
 
 # References
 https://github.com/pratyush19/Udacity-Data-Analyst-Nanodegree/tree/master/P3-OpenStreetMap-Wrangling-with-SQL
