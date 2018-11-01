@@ -218,7 +218,7 @@ american		1
 barbeque		1
 cajun			1
 chinese			1
-latin_american		1
+latin_american		 1
 ```
 From this partial result, I can guess there are more mexican who lived in houston since mexico is close to houston.
 
